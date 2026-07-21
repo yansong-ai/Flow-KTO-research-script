@@ -1,0 +1,36 @@
+# Confirmed Contribution
+
+## Core Contribution
+
+| Field | Content |
+|---|---|
+| Main contribution statement | Flow-KTO formulates direct post-training of a pretrained flow-based robot policy from a fixed collection of unary feedback gathered during real-world robot deployment, using a reference-relative CFM improvement score and a current-policy-sampled dynamic surrogate reference point inside the exact bounded KTO utility, without collecting additional robot interactions for optimization or learning a reward/value critic. |
+| Contribution type | new method |
+| One-sentence reviewer payoff | Flow-KTO provides a direct route from naturally available desirable/undesirable robot trajectories to flow-policy improvement without first converting episode outcomes into a value/advantage model or learning a critic whose action gradient must be transported through the flow policy. |
+
+## Why This Contribution Is Needed
+
+| Field | Content |
+|---|---|
+| Field problem | Pretrained flow-based robot policies must improve from deployment experience, but real-robot interaction and structured preference collection are expensive, and post-training must preserve the competence of the pretrained controller. |
+| Specific gap | The reviewed literature does not establish a direct method for the project's conjunction of constraints: one fixed unary-labeled trajectory per context, no new environment interaction during optimization, no learned reward/value critic, a multi-step flow robot policy, and a current-policy-centered reference estimated in flow-training space. |
+| Concrete challenge | Canonical paired DPO lacks a same-context alternative; GRPO lacks rewarded groups; standard PPO lacks new rewarded trajectories and advantages; critic-based offline methods add reward/value and coverage assumptions; and the flow policy does not expose a tractable terminal action log probability. A usable objective must also distinguish current-policy, dataset-action, and mismatched reference estimates and remain stable at the numerical scale of CFM scores. |
+| Why prior work leaves it unresolved | RECAP is the closest feedback-side route: it converts task outcomes, demonstrations, autonomous rollouts, and interventions into a learned value function and binarized advantage conditioning. QAM is the closest optimization-side route: it learns a TD critic and uses adjoint matching to transport critic action gradients into step-wise flow supervision. Neither establishes a direct no-critic update from fixed isolated unary trajectory judgments. KTO, Diffusion-KTO/RKO, FPO, and CrossVLA remain essential objective and estimator lineage, but their likelihood, local-transition, on-policy, or paired-preference assumptions are handled in Related Work rather than defining the Introduction's primary comparison. |
+
+## How This Paper Responds
+
+| Field | Content |
+|---|---|
+| Design response | For a logged context `x` and labeled trajectory `y`, Flow-KTO defines `Delta_theta(x,y) = L_CFM^ref(y given x) - L_CFM^theta(y given x)`. It estimates a stop-gradient dynamic reference `b_theta` by sampling actions from the current policy at logged contexts and teacher-forced scoring those same actions under current and reference policies. A desirable example uses margin `Delta_theta - b_theta`; an undesirable example uses `b_theta - Delta_theta`. The exact KTO loss is the expected class weight minus the class-weighted sigmoid utility, with beta controlling the bounded margin scale. |
+| Evidence required | A skeptical reviewer requires: an exact equation/code audit; exact-KTO comparisons against softplus and simpler unary baselines; controlled policy-sampled versus dataset, mismatched, fixed, and zero reference ablations; a bounded CFM-score calibration or likelihood-surrogate study; same-data and same-backbone comparisons with RECAP-style advantage conditioning and a QAM/critic-style policy-extraction route where the corpus supports fair critic learning; held-out competence checks; and matched repeated real-robot trials with raw denominators, uncertainty, checkpoint mapping, and controlled workloads. |
+| Evidence available | The project records distinguish policy-sampled, dataset-action, and mismatched rolled-action estimands and show material disagreement including sign reversal; policy-sampled Monte Carlo estimates have been compared with larger-sample references; strict multisite probes document preserved mean held-out CFM quality alongside label-specific margin and saturation behavior; the user confirms exact KTO as the intended objective; the user directly observed clear closed-loop action improvement; and BOT154/BOT159 records each report `+221/h` throughput with numerically lower reflow under the reported deployments. |
+| Evidence missing | The local bundle does not yet provide a completed code-level audit proving that every training run used exact `1-sigma` KTO; the required exact-KTO/softplus and reference-estimator causal ablations are not yet consolidated; CFM-score calibration against tractable likelihoods is missing; current beta/LR comparisons are confounded; real-robot metric definitions, raw counts, matched conditions, repeated windows, uncertainty, and exact checkpoint/config mappings remain incomplete. Experiments and Validation prose is intentionally deferred in the current drafting phase. |
+
+## Claim Boundary
+
+| Field | Content |
+|---|---|
+| Strong claims allowed | The paper may state the restricted-feedback problem, derive the Flow-KTO score/reference/exact-utility objective, distinguish policy-sampled, dataset-action, and mismatched estimands, report that the supplied studies show these estimators can materially disagree, and state that the user observed clear whole-robot action improvement with two preliminary operational comparisons. |
+| Claims to soften or avoid | Do not claim an exact or near-lossless log-likelihood replacement, an exact KL baseline, impossibility of all policy-gradient methods, first unary-feedback robot diffusion/flow alignment, controlled causal superiority, statistical significance, broad generalization, or improved double-grab/reflow performance before the corresponding protocol and results are verified. |
+| Novelty risk | The strongest domain objection is that RECAP already converts sparse robot outcomes into advantage-conditioned flow-VLA improvement and QAM already avoids unstable full-denoising backpropagation for critic-optimized flow policies. The strongest objective-lineage objection remains that RKO/Diffusion-KTO provide unary generative-policy alignment and FPO/CrossVLA connect CFM losses to optimization. The answer must be demonstrated rather than rhetorical: Flow-KTO's publishable delta is a direct fixed-data, no-critic, current-policy-centered CFM update whose value is validated against faithful advantage-conditioned and critic-based controls. |
+| Significance risk | Reviewers may view the method as a narrow deployment adaptation or an estimator debugging study. The answer requires showing that this feedback constraint occurs naturally during real-world robot deployment, that avoiding additional interaction or a learned critic has practical value, and that the estimator/objective choices yield reproducible closed-loop improvements beyond one checkpoint, robot, or site. |

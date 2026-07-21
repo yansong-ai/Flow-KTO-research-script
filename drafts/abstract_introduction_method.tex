@@ -1,0 +1,305 @@
+\documentclass[10pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb}
+
+\newcommand{\sg}{\operatorname{sg}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Dunary}{\mathcal{D}_{\mathrm{u}}}
+\newcommand{\Danchor}{\mathcal{D}_{\mathrm{a}}}
+\newcommand{\Lcfm}{\mathcal{L}_{\mathrm{CFM}}}
+\newcommand{\Lkto}{\mathcal{L}_{\mathrm{KTO}}}
+
+\title{Flow-KTO: Learning Flow-Based Robot Policies from Unary Feedback}
+\author{Anonymous Authors}
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+% Deferred by the confirmed writing sequence. Write the Abstract only after the
+% Method, Experiments, and Conclusion have stabilized.
+\end{abstract}
+
+\input{introduction}
+
+\section{Method}
+
+\subsection{Fixed Unary Robot Logs}
+
+Let $x\in\mathcal{X}$ denote the context available to a robot policy, including
+the observation history and any task conditioning, and let
+$y\in\mathbb{R}^{H\times d_a}$ be an action chunk of horizon $H$. The unary
+post-training set is
+\begin{equation}
+    \Dunary=\{(x_i,y_i,s_i)\}_{i=1}^{N},
+    \qquad s_i\in\{+1,-1\},
+    \label{eq:dataset}
+\end{equation}
+where $s_i=+1$ marks a desirable trajectory and $s_i=-1$ an undesirable one.
+There is at most one logged trajectory for a context in the studied corpus; no
+paired counterfactual $y'_i$ is assumed.
+
+We start from a pretrained flow policy $\pi_{\mathrm{ref}}$ and initialize the
+trainable policy $\pi_\theta$ from the same parameters. The reference remains
+frozen. Post-training does not query an environment, and internally sampled
+actions have no reward or quality label. We also allow an optional anchor set
+$\Danchor$ of ordinary behavior-cloning trajectories. It is used only through
+the original CFM training objective and is kept separate from the unary
+feedback in Eq.~\eqref{eq:dataset}.
+
+\subsection{A Reference-Relative CFM Improvement Score}
+
+We first define how a complete action chunk is scored by the flow policy. Let
+$\epsilon\sim p_0$ be a base-noise sample and let $t\sim p(t)$ denote a flow
+time. A conditional probability path can be written as
+\begin{equation}
+    y_t=\alpha_t y+\sigma_t\epsilon,
+    \qquad
+    u_t(y,\epsilon)=\dot{\alpha}_t y+\dot{\sigma}_t\epsilon,
+    \label{eq:path}
+\end{equation}
+where $u_t$ is the conditional target velocity. This notation includes the
+linear optimal-transport path as a special case. For a vector field $v_j$ with
+$j\in\{\theta,\mathrm{ref}\}$, we use the same schedule, action mask $M$, and
+reduction as the pretrained policy:
+\begin{align}
+    \ell_j(t,\epsilon;x,y)
+    &=\frac{w(t)}{\lVert M\rVert_1}
+      \left\lVert
+      M\odot\bigl(v_j(y_t,t\mid x)-u_t(y,\epsilon)\bigr)
+      \right\rVert_2^2, \\
+    \Lcfm^{j}(y\mid x)
+    &=\E_{t,\epsilon}\left[\ell_j(t,\epsilon;x,y)\right].
+    \label{eq:cfm}
+\end{align}
+All current/reference comparisons share the same draws $(t,\epsilon)$, masks,
+preprocessing, and normalization. Pairing removes nuisance variation from the
+difference without changing its expectation.
+
+The Flow-KTO score is
+\begin{equation}
+    \Delta_\theta(x,y)
+    =\Lcfm^{\mathrm{ref}}(y\mid x)
+     -\Lcfm^{\theta}(y\mid x).
+    \label{eq:delta}
+\end{equation}
+A positive value means that the current vector field fits the scored trajectory
+better than the frozen reference under the shared teacher-forced protocol. With
+$R$ Monte Carlo draws, we estimate Eq.~\eqref{eq:delta} by
+\begin{equation}
+    \widehat{\Delta}^{(R)}_\theta(x,y)
+    =\frac{1}{R}\sum_{r=1}^{R}
+      \left[\ell_{\mathrm{ref}}(t_r,\epsilon_r;x,y)
+      -\ell_\theta(t_r,\epsilon_r;x,y)\right].
+    \label{eq:delta-mc}
+\end{equation}
+
+The score has a precise but limited likelihood interpretation. For weightings
+under which the denoising objective satisfies
+$\mathcal{L}^{w}_{j}(y\mid x)=-\mathrm{ELBO}_{j}(y\mid x)+C(x,y)$,
+as used in the FPO derivation \cite{mcallister2025fpo},
+\begin{align}
+    \Delta^w_\theta(x,y)
+    &=\mathrm{ELBO}_{\theta}(y\mid x)
+      -\mathrm{ELBO}_{\mathrm{ref}}(y\mid x) \\
+    &=\log\frac{\pi_\theta(y\mid x)}
+                      {\pi_{\mathrm{ref}}(y\mid x)}
+      -\left(G_\theta(x,y)-G_{\mathrm{ref}}(x,y)\right),
+    \label{eq:elbo-gap}
+\end{align}
+where $G_j$ is the model-dependent gap between log likelihood and its ELBO.
+Equation~\eqref{eq:elbo-gap} is why a CFM difference can carry policy-improvement
+information, and also why we do not identify it with an exact log-likelihood
+ratio. Throughout, $\Delta_\theta$ is a reference-relative CFM, or
+ELBO-related, improvement score.
+
+\subsection{A Policy-Centered Dynamic Surrogate Reference}
+
+Whether a labeled score is large or small depends on how the current policy has
+moved away from its reference. We therefore center it on current-policy actions.
+Let $q_{\Dunary}(x)$ be the empirical context distribution. The target reference
+quantity is
+\begin{equation}
+    b_\theta
+    =\E_{x\sim q_{\Dunary}}
+       \E_{\widetilde{y}\sim\pi_\theta(\cdot\mid x)}
+       \left[\Delta_\theta(x,\widetilde{y})\right].
+    \label{eq:policy-center}
+\end{equation}
+This expectation follows the actions that $\pi_\theta$ currently proposes. It
+does not assign utility to those actions.
+
+For a batch of $B$ logged contexts and $K$ samples per context, the practical
+estimator is
+\begin{equation}
+    \widehat{b}_{\mathcal{B}}
+    =\sg\!\left[
+      \frac{1}{BK}\sum_{i=1}^{B}\sum_{k=1}^{K}
+      \widehat{\Delta}^{(R)}_\theta
+      \left(x_i,\widetilde{y}_{ik}\right)
+      \right],
+    \quad
+    \widetilde{y}_{ik}\sim\pi_\theta(\cdot\mid x_i).
+    \label{eq:bhat}
+\end{equation}
+Sampling is performed without gradients. The sampled action is then
+teacher-forced under both policies using paired CFM randomness, and the entire
+aggregate is detached. In distributed training, workers aggregate the numerator
+and count before applying the stop-gradient. Larger $K$, larger $R$, or
+aggregation across batches can reduce variance; these choices affect estimator
+quality and compute but not the estimand in Eq.~\eqref{eq:policy-center}.
+
+Two superficially similar quantities answer different questions. A dataset
+center
+\begin{equation}
+    b_{\mathrm{data}}
+    =\E_{(x,y)\sim\Dunary}\left[\Delta_\theta(x,y)\right]
+\end{equation}
+measures relative fit on logged actions. A mismatched center such as
+$\E_i[\Delta_\theta(x_i,y_{\rho(i)})]$, for a nontrivial permutation $\rho$,
+measures response to context-action mismatch and may score out-of-distribution
+actions. Both are useful diagnostics. Neither is interchangeable with the
+current-policy expectation in Eq.~\eqref{eq:policy-center}. Because
+$\Delta_\theta$ is a surrogate score, $b_\theta$ is likewise a dynamic
+surrogate reference point, not an exact KL divergence.
+
+\subsection{Exact KTO from a Signed Unary Margin}
+
+For a labeled example, define the signed policy-centered margin
+\begin{equation}
+    m_i=s_i\left(
+        \widehat{\Delta}^{(R)}_\theta(x_i,y_i)
+        -\widehat{b}_{\mathcal{B}}
+        \right).
+    \label{eq:margin}
+\end{equation}
+Let $\lambda_D$ and $\lambda_U$ be the desirable and undesirable utility
+weights, and write $\lambda_{s_i}=\lambda_D$ for $s_i=+1$ and
+$\lambda_{s_i}=\lambda_U$ for $s_i=-1$. The per-example value and loss are
+\begin{align}
+    v_i(\theta)
+    &=\lambda_{s_i}\,\sigma(\beta m_i), \\
+    \ell_{\mathrm{KTO},i}(\theta)
+    &=\lambda_{s_i}-v_i(\theta)
+      =\lambda_{s_i}\left[1-\sigma(\beta m_i)\right], \\
+    \Lkto(\theta)
+    &=\E_{(x_i,y_i,s_i)\sim\Dunary}
+      \left[\ell_{\mathrm{KTO},i}(\theta)\right].
+    \label{eq:kto}
+\end{align}
+This is the exact bounded KTO utility \cite{ethayarajh2024kto}. There is no
+logarithm around the sigmoid. Written separately, the two cases are
+\begin{align}
+    \ell_D
+    &=\lambda_D\left[
+      1-\sigma\!\left(\beta(\Delta_\theta-b_\theta)\right)
+      \right], \\
+    \ell_U
+    &=\lambda_U\left[
+      1-\sigma\!\left(\beta(b_\theta-\Delta_\theta)\right)
+      \right].
+    \label{eq:kto-cases}
+\end{align}
+
+The sign convention gives the intended CFM update directly. Treating the
+reference point as stopped-gradient,
+\begin{equation}
+    \frac{\partial \ell_{\mathrm{KTO},i}}
+         {\partial \widehat{\Delta}_i}
+    =-s_i\lambda_{s_i}\beta
+      \sigma(\beta m_i)\bigl[1-\sigma(\beta m_i)\bigr].
+    \label{eq:delta-gradient}
+\end{equation}
+Minimization therefore increases $\Delta_i$ for a desirable example, which
+reduces its current-policy CFM loss relative to the reference. For an
+undesirable example it decreases $\Delta_i$, increasing the current-policy CFM
+loss on that trajectory. The multiplier in Eq.~\eqref{eq:delta-gradient}
+vanishes on both saturated sides; an example that is far from the boundary
+receives little update from this term.
+
+\subsection{Matching KTO to the CFM Margin Scale}
+
+Three coefficients play different roles. The class weights
+$\lambda_D,\lambda_U$ set the bounded utility amplitudes and class balance. An
+outer coefficient $\eta_{\mathrm{KTO}}$ controls how the unary objective is
+mixed with an optional retention objective. The inverse temperature $\beta$
+sets the width of the active margin region. Conflating these controls would
+turn score calibration into a change in the total KTO weight.
+
+For exact KTO, the magnitude of the margin derivative is
+\begin{equation}
+    \left|\frac{\partial\ell_{\mathrm{KTO},i}}
+                    {\partial m_i}\right|
+    =\lambda_{s_i}\beta\,
+      \sigma(\beta m_i)\bigl[1-\sigma(\beta m_i)\bigr].
+    \label{eq:margin-gradient}
+\end{equation}
+Its peak is $\lambda_{s_i}\beta/4$ at $m_i=0$, and its active band has width
+on the order of $1/\beta$. In our flow-policy training, raw centered CFM margins
+are typically on the $10^{-3}$ to $10^{-2}$ scale. With
+$\beta=\mathcal{O}(10^{-2})$, a $10^{-3}$ margin gives
+$|\beta m|=\mathcal{O}(10^{-5})$; the utility remains effectively fixed at its
+midpoint. We instead keep $\lambda_D$, $\lambda_U$, and
+$\eta_{\mathrm{KTO}}$ unchanged and use $\beta=\mathcal{O}(10^{2})$. The
+sigmoid then resolves changes at the observed CFM scale, and its gradient
+automatically attenuates as either signed margin saturates.
+
+Changing $\beta$ does raise the peak boundary gradient even though the utility
+amplitude stays fixed. The optimizer learning rate, gradient clipping, score
+normalization, and sampling variance must therefore be controlled separately.
+The scale-matching claim is about the argument of the exact KTO utility; it does
+not imply that a larger $\beta$ alone guarantees a better policy.
+
+\subsection{Training Objective and Procedure}
+
+The core objective is Eq.~\eqref{eq:kto}. When retention data are available, we
+optionally add the original flow-training loss
+\begin{align}
+    \mathcal{L}_{\mathrm{anchor}}(\theta)
+    &=\E_{(x,y)\sim\Danchor}\left[\Lcfm^\theta(y\mid x)\right], \\
+    \mathcal{L}_{\mathrm{total}}(\theta)
+    &=\eta_{\mathrm{KTO}}\Lkto(\theta)
+      +\eta_{\mathrm{a}}\mathcal{L}_{\mathrm{anchor}}(\theta).
+    \label{eq:total}
+\end{align}
+Setting $\eta_{\mathrm{a}}=0$ gives the pure unary objective. The anchor is a
+retention mechanism, not an additional source of preference or reward; its
+effect must be evaluated independently.
+
+One optimization step proceeds as follows:
+\begin{enumerate}
+    \item Draw a unary batch from $\Dunary$ and, if used, an anchor batch from
+    $\Danchor$.
+    \item At each logged context, sample $K$ action chunks from
+    $\pi_\theta$ without gradient tracking and without querying the robot.
+    \item Teacher-force every sampled chunk through $\pi_\theta$ and
+    $\pi_{\mathrm{ref}}$ with paired flow times and noise. Aggregate
+    Eq.~\eqref{eq:bhat} across the batch and workers, then detach it.
+    \item Score the logged unary trajectories with Eq.~\eqref{eq:delta-mc},
+    form their signed margins, and compute the exact KTO loss in
+    Eq.~\eqref{eq:kto}.
+    \item Add the optional anchor term and update $\theta$. The reference
+    policy, policy samples, and dynamic reference receive no gradient.
+\end{enumerate}
+
+For $B$ contexts, $K$ policy samples, $S$ flow-solver steps, and $R$ paired
+CFM draws, reference estimation adds $BKS$ no-gradient vector-field evaluations
+for sampling and $2BKR$ teacher-forced current/reference evaluations, in
+addition to scoring the labeled examples. No reward model, value model, or
+backpropagation through the sampler is required. This cost is model computation,
+not environment interaction.
+
+Flow-KTO assumes a fixed reference policy, binary trajectory-level judgments,
+and a consistent CFM scoring protocol whose numerical scale can be measured.
+It does not recover an exact terminal policy likelihood, and its dynamic
+reference is not an exact KL divergence. Nor does the formulation rule out
+critic-based offline learning or on-policy flow optimization when their richer
+signals are available. It addresses the narrower case established at the
+start: direct post-training from fixed unary robot logs.
+
+\bibliographystyle{unsrt}
+\bibliography{references}
+
+\end{document}

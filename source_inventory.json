@@ -1,0 +1,296 @@
+[
+  {
+    "path": "001_KTO_proposal.md",
+    "extension": ".md",
+    "file_type": "word_text",
+    "role_hint": "material",
+    "size_bytes": 7117
+  },
+  {
+    "path": "006_flow_kto_manual_training_start.md",
+    "extension": ".md",
+    "file_type": "word_text",
+    "role_hint": "material",
+    "size_bytes": 2342
+  },
+  {
+    "path": "007_z0_ema_semantics_20260610.md",
+    "extension": ".md",
+    "file_type": "word_text",
+    "role_hint": "material",
+    "size_bytes": 3511
+  },
+  {
+    "path": "010_candidate_decision_and_positive_kto.md",
+    "extension": ".md",
+    "file_type": "word_text",
+    "role_hint": "material",
+    "size_bytes": 5236
+  },
+  {
+    "path": "012_research_synthesis_20260615.md",
+    "extension": ".md",
+    "file_type": "word_text",
+    "role_hint": "material",
+    "size_bytes": 6242
+  },
+  {
+    "path": "013_old_w2_pos12_single_bc_analysis_20260615.md",
+    "extension": ".md",
+    "file_type": "word_text",
+    "role_hint": "material",
+    "size_bytes": 8785
+  },
+  {
+    "path": "015_z0_estimator_failure_modes_20260618.md",
+    "extension": ".md",
+    "file_type": "word_text",
+    "role_hint": "material",
+    "size_bytes": 8979
+  },
+  {
+    "path": "016_healthy_run_z0_mc_vs_rolled_20260619.md",
+    "extension": ".md",
+    "file_type": "word_text",
+    "role_hint": "material",
+    "size_bytes": 8667
+  },
+  {
+    "path": "017_sfsz_policyz0_pilot_results_20260621.md",
+    "extension": ".md",
+    "file_type": "word_text",
+    "role_hint": "result",
+    "size_bytes": 7514
+  },
+  {
+    "path": "018_sfsz_policyz0_epoch15_results_20260621.md",
+    "extension": ".md",
+    "file_type": "word_text",
+    "role_hint": "result",
+    "size_bytes": 7886
+  },
+  {
+    "path": "019_sfsz_newdata_z0all_results_20260624.md",
+    "extension": ".md",
+    "file_type": "word_text",
+    "role_hint": "result",
+    "size_bytes": 3030
+  },
+  {
+    "path": "020_sfsz_heldout_z0_probe_20260624.md",
+    "extension": ".md",
+    "file_type": "word_text",
+    "role_hint": "material",
+    "size_bytes": 3084
+  },
+  {
+    "path": "021_explore_matrix_0624_insights_20260625.md",
+    "extension": ".md",
+    "file_type": "word_text",
+    "role_hint": "material",
+    "size_bytes": 9839
+  },
+  {
+    "path": "022_policy_vs_dataset_action_z0_20260630.md",
+    "extension": ".md",
+    "file_type": "word_text",
+    "role_hint": "material",
+    "size_bytes": 5983
+  },
+  {
+    "path": "023_three_deployed_models_attribution_20260713.md",
+    "extension": ".md",
+    "file_type": "word_text",
+    "role_hint": "material",
+    "size_bytes": 17117
+  },
+  {
+    "path": "024_beta400_n20_epoch1_4_probe_20260714.md",
+    "extension": ".md",
+    "file_type": "word_text",
+    "role_hint": "material",
+    "size_bytes": 4604
+  },
+  {
+    "path": "025_beta400_n16_epoch5_probe_20260714.md",
+    "extension": ".md",
+    "file_type": "word_text",
+    "role_hint": "material",
+    "size_bytes": 2986
+  },
+  {
+    "path": "026_n16_strict_multisite_heldout_epoch4_6_20260714.md",
+    "extension": ".md",
+    "file_type": "word_text",
+    "role_hint": "material",
+    "size_bytes": 5270
+  },
+  {
+    "path": "README.md",
+    "extension": ".md",
+    "file_type": "word_text",
+    "role_hint": "material",
+    "size_bytes": 5457
+  },
+  {
+    "path": "STATUS.md",
+    "extension": ".md",
+    "file_type": "word_text",
+    "role_hint": "material",
+    "size_bytes": 22494
+  },
+  {
+    "path": "auto-research/001_weekend_flow_kto_training.md",
+    "extension": ".md",
+    "file_type": "word_text",
+    "role_hint": "material",
+    "size_bytes": 43811
+  },
+  {
+    "path": "auto-research/002_flow_kto_probe_auto_research_20260606.md",
+    "extension": ".md",
+    "file_type": "word_text",
+    "role_hint": "material",
+    "size_bytes": 43050
+  },
+  {
+    "path": "auto-research/003_avoidance_kto_candidate_selection_20260607.md",
+    "extension": ".md",
+    "file_type": "word_text",
+    "role_hint": "material",
+    "size_bytes": 3862
+  },
+  {
+    "path": "auto-research/004_neg15_beta004_lr2e5_20260610.md",
+    "extension": ".md",
+    "file_type": "word_text",
+    "role_hint": "material",
+    "size_bytes": 5270
+  },
+  {
+    "path": "auto-research/005_beta003_real_machine_feedback_20260611.md",
+    "extension": ".md",
+    "file_type": "word_text",
+    "role_hint": "material",
+    "size_bytes": 2279
+  },
+  {
+    "path": "auto-research/006_beta004_continue_epoch14_20260611.md",
+    "extension": ".md",
+    "file_type": "word_text",
+    "role_hint": "material",
+    "size_bytes": 4616
+  },
+  {
+    "path": "auto-research/007_positive_kto_revisit_20260611.md",
+    "extension": ".md",
+    "file_type": "word_text",
+    "role_hint": "material",
+    "size_bytes": 3639
+  },
+  {
+    "path": "auto-research/008_bc7_pool_experiments_20260611.md",
+    "extension": ".md",
+    "file_type": "word_text",
+    "role_hint": "result",
+    "size_bytes": 8480
+  },
+  {
+    "path": "auto-research/009_rollout_success_positive_bracket_20260613.md",
+    "extension": ".md",
+    "file_type": "word_text",
+    "role_hint": "material",
+    "size_bytes": 3434
+  },
+  {
+    "path": "auto-research/010_rollout_success_positive_quota_bracket_20260613.md",
+    "extension": ".md",
+    "file_type": "word_text",
+    "role_hint": "material",
+    "size_bytes": 5293
+  },
+  {
+    "path": "auto-research/011_bcmix_large_quota_20260614.md",
+    "extension": ".md",
+    "file_type": "word_text",
+    "role_hint": "material",
+    "size_bytes": 4005
+  },
+  {
+    "path": "auto-research/012_z0split_positive_margin_probe_20260614.md",
+    "extension": ".md",
+    "file_type": "word_text",
+    "role_hint": "material",
+    "size_bytes": 4389
+  },
+  {
+    "path": "auto-research/013_sfsz_beta_lr_weight_quota_20260621.md",
+    "extension": ".md",
+    "file_type": "word_text",
+    "role_hint": "material",
+    "size_bytes": 9005
+  },
+  {
+    "path": "auto-research/014_kto_training_research_sop_20260622.md",
+    "extension": ".md",
+    "file_type": "word_text",
+    "role_hint": "material",
+    "size_bytes": 3503
+  },
+  {
+    "path": "history/002_mist_current_state.md",
+    "extension": ".md",
+    "file_type": "word_text",
+    "role_hint": "material",
+    "size_bytes": 10825
+  },
+  {
+    "path": "history/003_z0_baseline_design_and_probe_todo.md",
+    "extension": ".md",
+    "file_type": "word_text",
+    "role_hint": "material",
+    "size_bytes": 4045
+  },
+  {
+    "path": "probe/001_probe_metadata_alignment_protocol.md",
+    "extension": ".md",
+    "file_type": "word_text",
+    "role_hint": "method",
+    "size_bytes": 5794
+  },
+  {
+    "path": "probe/002_probe_protocol_and_diagnostics.md",
+    "extension": ".md",
+    "file_type": "word_text",
+    "role_hint": "method",
+    "size_bytes": 4717
+  },
+  {
+    "path": "probe/004_formal_probe_sop_20260616.md",
+    "extension": ".md",
+    "file_type": "word_text",
+    "role_hint": "material",
+    "size_bytes": 9914
+  },
+  {
+    "path": "probe/005_z0_curve_plotting.md",
+    "extension": ".md",
+    "file_type": "word_text",
+    "role_hint": "result",
+    "size_bytes": 1763
+  },
+  {
+    "path": "probe/006_probe_default_updates_20260625.md",
+    "extension": ".md",
+    "file_type": "word_text",
+    "role_hint": "material",
+    "size_bytes": 2846
+  },
+  {
+    "path": "probe/README.md",
+    "extension": ".md",
+    "file_type": "word_text",
+    "role_hint": "material",
+    "size_bytes": 1103
+  }
+]
